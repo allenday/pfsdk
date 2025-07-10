@@ -23,6 +23,50 @@ if (!fs.existsSync(generatedPath)) {
 }
 
 /**
+ * Generate TypeScript envelope types file
+ */
+function generateEnvelopeTypes(): boolean {
+  console.log('🔍 Generating TypeScript envelope types...');
+
+  const envelopeTypesCode = `/**
+ * Auto-generated TypeScript envelope types from protobuf definitions.
+ *
+ * DO NOT EDIT - This file is auto-generated from proto files.
+ * Run 'npm run generate:types' to regenerate.
+ */
+
+// Type-only imports to avoid runtime import issues
+export type {
+  Envelope,
+  ContextReference,
+  MultiPartMessagePart,
+  CoreMessage,
+  PostFiatAgentCapabilities,
+  PostFiatEnvelopePayload,
+  PostFiatA2AMessage,
+} from '../generated/postfiat/v3/messages_pb';
+
+// Re-export types for convenience
+export type {
+  MessageType as ProtoMessageType,
+  EncryptionMode as ProtoEncryptionMode,
+} from '../generated/postfiat/v3/messages_pb';
+`;
+
+  // Write the generated file
+  const outputPath = path.join(__dirname, '..', 'src', 'types', 'envelope.ts');
+  const outputDir = path.dirname(outputPath);
+  
+  if (!fs.existsSync(outputDir)) {
+    fs.mkdirSync(outputDir, { recursive: true });
+  }
+  
+  fs.writeFileSync(outputPath, envelopeTypesCode);
+  console.log(`✅ Generated ${outputPath}`);
+  return true;
+}
+
+/**
  * Generate TypeScript enums from protobuf definitions
  */
 function generateEnumsFromProto(): boolean {
@@ -786,6 +830,17 @@ export {
 } from './postfiat/v3/errors_pb';
 export * from './a2a/v1/a2a_pb';
 export * from './a2a/v1/a2a_connect';
+
+// Type-only exports to avoid runtime import issues
+export type {
+  Envelope,
+  ContextReference,
+  MultiPartMessagePart,
+  CoreMessage,
+  PostFiatAgentCapabilities,
+  PostFiatEnvelopePayload,
+  PostFiatA2AMessage,
+} from './postfiat/v3/messages_pb';
 `;
 
   // Write the generated/index.ts file
@@ -817,6 +872,7 @@ function generateIndex(): boolean {
 // Types and enums
 export * from './types/enums';
 export * from './types/exceptions';
+export type * from './types/envelope';
 
 // Client utilities
 export * from './client/base';
@@ -849,6 +905,7 @@ function main(): void {
   console.log('🔄 Generating TypeScript types from protobuf definitions...');
 
   let success = true;
+  success = generateEnvelopeTypes() && success;
   success = generateEnumsFromProto() && success;
   success = generateExceptions() && success;
   success = generateClientUtilities() && success;
